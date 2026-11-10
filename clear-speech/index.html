@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f5f8b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Clear Speech">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Clear Speech — Daily Articulation Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f3ee; --card:#ffffff; --ink:#1f2328; --muted:#6b6f76; --line:#e6e1d8;
+    --accent:#1f5f8b; --accent-soft:#e3eef6; --good:#2e7d4f; --good-soft:#e2f2e8;
+    --warn:#b4541c; --warn-soft:#fbeadf; --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#16181b; --card:#1f2226; --ink:#eceae6; --muted:#9a9ea5; --line:#2e3238;
+      --accent:#6fb0de; --accent-soft:#1e3242; --good:#6cc794; --good-soft:#1d3327; --warn:#f0a070; --warn-soft:#3a2619; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif}
+  .wrap{max-width:860px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
+  html{-webkit-text-size-adjust:100%} button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  header h1{font-family:Fraunces,serif;font-weight:700;font-size:30px;margin:0 0 2px}
+  header p{margin:0;color:var(--muted)}
+  nav{display:flex;gap:6px;margin:22px 0 18px;flex-wrap:wrap}
+  nav button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 16px;border-radius:999px;font:500 14px Inter,sans-serif;cursor:pointer}
+  nav button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:16px}
+  h2{font-family:Fraunces,serif;font-weight:600;font-size:22px;margin:0 0 6px}
+  h3{font-size:15px;margin:0 0 6px}
+  .muted{color:var(--muted)} .small{font-size:13.5px}
+  .btn{border:0;background:var(--accent);color:#fff;padding:10px 18px;border-radius:10px;font:600 14px Inter,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+  .btn.ghost{background:var(--accent-soft);color:var(--accent)}
+  .btn.rec{background:#c0392b}
+  .btn:disabled{opacity:.45;cursor:default}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .hidden{display:none!important}
+  /* routine */
+  .steps{display:flex;gap:4px;margin:14px 0 18px}
+  .steps span{flex:1;height:6px;border-radius:3px;background:var(--line)}
+  .steps span.done{background:var(--good)} .steps span.cur{background:var(--accent)}
+  .timer{font-family:Fraunces,serif;font-size:54px;font-weight:700;letter-spacing:1px;margin:6px 0}
+  .stepname{font-family:Fraunces,serif;font-size:26px;font-weight:600;margin:0}
+  ul.how{margin:10px 0 18px;padding-left:20px} ul.how li{margin:4px 0}
+  .drill{font-family:Fraunces,serif;font-size:19px;background:var(--accent-soft);border-radius:10px;padding:12px 14px;margin:0 0 14px}
+  /* twisters */
+  .twister{font-family:Fraunces,serif;font-size:28px;line-height:1.35;margin:10px 0 16px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+  .chip{border:1px solid var(--line);background:transparent;color:var(--ink);padding:5px 12px;border-radius:999px;font:500 13px Inter;cursor:pointer}
+  .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .live{min-height:24px;color:var(--muted);font-style:italic;margin:10px 0}
+  .result{border-radius:10px;padding:14px;margin-top:12px;background:var(--bg)}
+  .score{font-family:Fraunces,serif;font-size:34px;font-weight:700}
+  .w-ok{color:var(--good)} .w-miss{color:var(--warn);text-decoration:underline wavy;text-underline-offset:4px}
+  .marked{font-size:18px;line-height:1.7}
+  /* passage */
+  .passage{font-size:19px;line-height:1.75;white-space:pre-wrap}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .stat b{display:block;font-family:Fraunces,serif;font-size:26px}
+  .stat span{font-size:12.5px;color:var(--muted)}
+  select{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+  textarea{width:100%;font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:110px}
+  /* progress */
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+  .cal div{aspect-ratio:1;border-radius:6px;background:var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)}
+  .cal div.l1{background:var(--accent-soft);color:var(--accent)} .cal div.l2{background:var(--accent);color:#fff}
+  .note{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:14px}
+  .tip{border-left:3px solid var(--accent);padding:4px 0 4px 12px;margin:10px 0}
+
+  @media (max-width:560px){
+    header h1{font-size:26px} .card{padding:18px} .twister{font-size:23px} .timer{font-size:46px}
+    nav{position:sticky;top:0;z-index:5;background:var(--bg);margin:14px -16px 14px;padding:8px 16px;flex-wrap:nowrap;overflow-x:auto}
+    nav button{flex:0 0 auto;padding:9px 14px}
+    .btn{padding:12px 16px} .passage{font-size:18px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Clear Speech</h1>
+    <p>A 10-minute daily routine for crisp, clear speaking — plus drills that listen back to you.</p>
+  </header>
+
+  <nav id="nav">
+    <button data-tab="routine" class="on">Daily routine</button>
+    <button data-tab="twisters">Tongue twisters</button>
+    <button data-tab="read">Read aloud</button>
+    <button data-tab="progress">Progress</button>
+  </nav>
+
+  <div id="voiceNote" class="note hidden">Listening and audio playback aren't available in this view (they need Chrome or the Claude desktop app). Everything else works — read the drills aloud on your own.</div>
+
+  <!-- ROUTINE -->
+  <section id="tab-routine">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <span class="muted small" id="stepCount">Step 1 of 7</span>
+        <span class="muted small" id="totalLeft"></span>
+      </div>
+      <div class="steps" id="stepBar"></div>
+      <p class="stepname" id="stepName"></p>
+      <div class="timer" id="timer">0:00</div>
+      <div id="stepDrill"></div>
+      <ul class="how" id="stepHow"></ul>
+      <div class="row">
+        <button class="btn" id="startBtn">▶ Start</button>
+        <button class="btn ghost" id="hearStep">🔊 Hear it</button>
+        <button class="btn ghost" id="prevBtn">← Back</button>
+        <button class="btn ghost" id="nextBtn">Next →</button>
+      </div>
+    </div>
+    <div class="card small muted">
+      <h3 style="color:var(--ink)">Why this works</h3>
+      Clarity comes from three things: steady breath, a loose jaw, and active lips and tongue tip. The routine warms each up in that order, then puts it together on real sentences. Ten minutes a day beats an hour once a week.
+    </div>
+  </section>
+
+  <!-- TWISTERS -->
+  <section id="tab-twisters" class="hidden">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2>Tongue twisters</h2>
+        <span class="muted small" id="twCount"></span>
+      </div>
+      <div class="chips" id="twFilter"></div>
+      <div class="twister" id="twText"></div>
+      <div class="muted small" id="twFocus"></div>
+      <div class="chips" id="speedChips">
+        <span class="muted small" style="align-self:center;margin-right:4px">Pace:</span>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost voice-tts" id="twHear">🔊 Hear it</button>
+        <button class="btn voice-dict" id="twSay">🎙 Say it</button>
+        <button class="btn ghost" id="twPrev">←</button>
+        <button class="btn ghost" id="twNext">Next twister →</button>
+      </div>
+      <div class="live" id="twLive"></div>
+      <div id="twResult"></div>
+    </div>
+    <div class="card small muted">
+      <div class="tip"><b style="color:var(--ink)">Method:</b> say it 3× slowly with exaggerated consonants, 3× at normal pace, then 3× fast. Speed only after accuracy.</div>
+      <div class="tip"><b style="color:var(--ink)">About the score:</b> it shows how much a speech recognizer understood. It's a rough guide to clarity, not a verdict — recognizers sometimes "fix" words for you.</div>
+    </div>
+  </section>
+
+  <!-- READ ALOUD -->
+  <section id="tab-read" class="hidden">
+    <div class="card">
+      <h2>Read aloud</h2>
+      <p class="muted small" style="margin-top:0">Read a passage the way you'd deliver it to a room. The app checks clarity and your speaking pace (aim for about 130–160 words per minute in a talk).</p>
+      <div class="row" style="margin:12px 0">
+        <select id="passageSel"></select>
+        <button class="btn ghost" id="customBtn">✎ Use my own text</button>
+      </div>
+      <div id="customBox" class="hidden" style="margin-bottom:12px">
+        <textarea id="customText" placeholder="Paste a few paragraphs of a talk, a speech, or an announcement you're preparing…"></textarea>
+        <div class="row" style="margin-top:8px"><button class="btn" id="useCustom">Use this text</button></div>
+      </div>
+      <div class="passage" id="passage"></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn ghost voice-tts" id="rdHear">🔊 Hear a model reading</button>
+        <button class="btn voice-dict" id="rdSay">🎙 Start reading</button>
+      </div>
+      <div class="live" id="rdLive"></div>
+      <div id="rdResult"></div>
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section id="tab-progress" class="hidden">
+    <div class="card">
+      <h2>Your progress</h2>
+      <div class="stats" id="progStats"></div>
+      <h3 style="margin-top:20px">Last 28 days</h3>
+      <div class="cal" id="cal"></div>
+      <p class="muted small">Light = some practice · Dark = full routine. Progress is saved in this browser only.</p>
+      <button class="btn ghost" id="resetBtn" style="margin-top:6px">Reset progress</button>
+      <span id="resetConfirm" class="hidden small"> Are you sure? <button class="btn rec" id="resetYes">Yes, reset</button></span>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const ROUTINE = [
+  {name:"Breath & posture", secs:60, drill:"Inhale 4 · hold 2 · exhale on a long “sssss” for 10+",
+   how:["Stand or sit tall, shoulders down, feet planted.","Breathe low into the belly, not the chest.","Exhale on a steady “s” — keep it even from start to finish. Repeat 4–5 times."],
+   say:"Inhale for four. Hold for two. Now exhale slowly on a long, steady s."},
+  {name:"Jaw & face release", secs:60, drill:"Big yawn · jaw drop · chew in slow motion",
+   how:["Massage the jaw hinges in small circles for 15 seconds.","Let the jaw drop open loosely — no forcing.","Exaggerated slow-motion chewing, then a big open yawn-sigh."],
+   say:"Massage your jaw, let it drop loosely, then chew slowly and yawn."},
+  {name:"Lip trills & lips", secs:60, drill:"Brrrrr (lip trill) · oo–ee–oo–ee · puh puh puh",
+   how:["Lip trill (like a motorboat) gliding up and down in pitch.","Alternate a tight “oo” with a wide “ee”, 10 times.","Pop crisp “puh, buh, muh” sounds off the lips."],
+   say:"Brrrrr. Ooo, eee, ooo, eee. Puh, puh, puh. Buh, buh, buh."},
+  {name:"Tongue workout", secs:60, drill:"Tongue circles · la-la-la · ta-da-ta-da",
+   how:["Circle the tongue around the outside of your teeth, 5 each way.","Fast “la la la la” with only the tongue tip moving — jaw still.","Crisp “ta da ta da” then “ka ga ka ga”."],
+   say:"La la la la la. Ta da ta da ta da. Ka ga ka ga ka ga."},
+  {name:"Consonant agility", secs:90, drill:"pa-ta-ka · pa-ta-ka · pa-ta-ka  →  buh-duh-guh",
+   how:["Start slowly and make every sound distinct: lips, tongue tip, back of tongue.","Gradually speed up — stop the moment it blurs, then back off.","Repeat with “buh-duh-guh” and “fuh-thuh-suh”."],
+   say:"Pa ta ka. Pa ta ka. Pa ta ka. Buh duh guh. Buh duh guh."},
+  {name:"Tongue twisters", secs:120, drill:"Red leather, yellow leather. · Unique New York. · The lips, the teeth, the tip of the tongue.",
+   how:["Each one 3× slow, 3× normal, 3× quick.","Exaggerate final consonants: lips, teeth, tip, tongue.","For more, use the Tongue twisters tab — it listens and scores you."],
+   say:"Red leather, yellow leather. Unique New York. The lips, the teeth, the tip of the tongue."},
+  {name:"Read with intention", secs:150, drill:"Read one passage aloud from the Read aloud tab — or anything you're preparing to say.",
+   how:["Slow down 10% more than feels natural.","Land the end of every sentence — don't let the last word fade.","Pause at commas and periods; pauses make you sound confident, not slow."],
+   say:"Now read a passage aloud. Slow down a little, finish every sentence strongly, and use your pauses."}
+];
+
+const TWISTERS = [
+  {t:"Red leather, yellow leather.", f:"L / R", tag:"L & R"},
+  {t:"Unique New York, unique New York, you know you need unique New York.", f:"Y glides, N", tag:"Vowels & glides"},
+  {t:"The lips, the teeth, the tip of the tongue.", f:"P, T, TH — front of mouth", tag:"Lips & tip"},
+  {t:"Peter Piper picked a peck of pickled peppers.", f:"P, K", tag:"Lips & tip"},
+  {t:"She sells seashells by the seashore.", f:"S vs SH", tag:"S & SH"},
+  {t:"Rubber baby buggy bumpers.", f:"B, G", tag:"Lips & tip"},
+  {t:"Toy boat. Toy boat. Toy boat.", f:"T, B, vowel shifts", tag:"Vowels & glides"},
+  {t:"Eleven benevolent elephants.", f:"L, V, N", tag:"L & R"},
+  {t:"Truly rural, truly rural, truly rural.", f:"R, L", tag:"L & R"},
+  {t:"Six thick thistle sticks.", f:"S vs TH", tag:"S & SH"},
+  {t:"Thirty-three thankful thinkers thought thoroughly.", f:"TH", tag:"TH"},
+  {t:"This thing, that thing, these things, those things.", f:"Voiced vs unvoiced TH", tag:"TH"},
+  {t:"Fresh fried fish, fish fresh fried.", f:"F, R, SH", tag:"S & SH"},
+  {t:"A proper copper coffee pot.", f:"P, K", tag:"Lips & tip"},
+  {t:"Good blood, bad blood, good blood, bad blood.", f:"D, B, G", tag:"Lips & tip"},
+  {t:"Which wristwatches are Swiss wristwatches?", f:"W, R, S clusters", tag:"S & SH"},
+  {t:"Clearly, carefully, crisply, completely.", f:"Final consonants & K clusters", tag:"Endings"},
+  {t:"Asked, tasks, risks, desks — next texts, fixed lists.", f:"Word endings (the most common blur)", tag:"Endings"},
+  {t:"Gentle Gertrude gathered great green grapes.", f:"G, R clusters", tag:"L & R"},
+  {t:"Many wise mothers make warm, wholesome meals.", f:"M, W", tag:"Vowels & glides"}
+];
+
+const PASSAGES = [
+  {name:"Opening remarks (warm-up)", text:"Good evening, and thank you all for being here. It is a real pleasure to see so many familiar faces, and a few new ones as well. Tonight we have a full program, so I will keep my words brief. Before we begin, I want to thank the volunteers who set up this room, prepared the food, and made sure every detail was taken care of. Events like this do not happen on their own. They happen because people choose to show up and give their time. So please, join me in thanking them."},
+  {name:"A short teaching", text:"There is an old idea that a small light pushes away a great deal of darkness. You do not need to fight the darkness directly. You do not need to argue with it or study it. You simply add light, and the darkness has nowhere to stand. The same is true in our own lives. When something feels heavy, the answer is often not a grand plan. It is one small, good act, done today, and then another one tomorrow."},
+  {name:"An announcement", text:"A few quick announcements before we finish. Registration for the winter program is now open, and spaces are limited, so please sign up early. The deadline is the fifteenth of the month. If you have questions about the schedule, the fees, or transportation, our office is open Monday through Thursday from nine until four. Finally, we are still looking for a few volunteers for next week. If you can spare an hour or two, please speak with me after the program."},
+  {name:"Precision drill (hard)", text:"The specific statistics suggest a significant, sustained shift. Twelve distinct districts reported structured, scheduled sessions; six of those sessions specifically addressed the strengths and weaknesses of existing strategies. Practically speaking, the results were particularly persuasive: participants articulated their thoughts more clearly, listened more carefully, and asked sharper, more thoughtful questions."}
+];
+
+/* ---------------- storage (this browser only) ---------------- */
+const KEY = "clearspeech-v1";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {days:{}, best:{}}; }catch(e){ return {days:{}, best:{}}; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+let store = load();
+function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function logDay(field, val){
+  const k=today(); store.days[k]=store.days[k]||{routine:false,drills:0,reads:0};
+  if(field==="routine") store.days[k].routine=true; else store.days[k][field]=(store.days[k][field]||0)+1;
+  if(val!=null){ store.best[field]=Math.max(store.best[field]||0,val); }
+  save();
+}
+
+/* ---------------- tabs ---------------- */
+const $ = id => document.getElementById(id);
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));
+  ["routine","twisters","read","progress"].forEach(t=>$("tab-"+t).classList.toggle("hidden",t!==b.dataset.tab));
+  if(b.dataset.tab==="progress") renderProgress();
+});
+
+/* ---------------- voice: the phone's own speech engine ---------------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let tts = ("speechSynthesis" in window) ? window.speechSynthesis : null;
+let dict = SR ? true : null;
+function setVoiceUI(){
+  document.querySelectorAll(".voice-tts").forEach(e=>e.classList.toggle("hidden",!tts));
+  $("hearStep").classList.toggle("hidden",!tts);
+  document.querySelectorAll(".voice-dict").forEach(e=>e.classList.toggle("hidden",!dict));
+  $("voiceNote").classList.toggle("hidden", !!dict);
+}
+$("voiceNote").textContent = "Scoring needs speech recognition, which this browser doesn't offer. On iPhone use Safari (with Siri / Dictation turned on); on Android use Chrome. Everything else works.";
+setVoiceUI();
+
+let voice=null;
+function pickVoice(){
+  if(!tts) return; const vs=tts.getVoices().filter(v=>/^en(-|_)?/i.test(v.lang));
+  voice = vs.find(v=>/en.US/i.test(v.lang)&&/(enhanced|premium|natural|samantha|google)/i.test(v.name)) || vs.find(v=>/en.US/i.test(v.lang)) || vs[0] || null;
+}
+if(tts){ pickVoice(); tts.onvoiceschanged=pickVoice; }
+function speak(text, rate){
+  if(!tts) return;
+  if(rec) return; // don't talk over the microphone
+  tts.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.lang="en-US"; if(voice) u.voice=voice;
+  u.rate=Math.max(0.5,Math.min(2,(rate||1)*0.95));
+  tts.speak(u);
+}
+
+/* ---------------- routine ---------------- */
+let step=0, left=ROUTINE[0].secs, running=false, tick=null;
+function fmt(s){ return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
+function renderStep(){
+  const s=ROUTINE[step];
+  $("stepCount").textContent=`Step ${step+1} of ${ROUTINE.length}`;
+  const rem = left + ROUTINE.slice(step+1).reduce((a,x)=>a+x.secs,0);
+  $("totalLeft").textContent = `About ${Math.ceil(rem/60)} min left`;
+  $("stepBar").innerHTML = ROUTINE.map((_,i)=>`<span class="${i<step?'done':i===step?'cur':''}"></span>`).join("");
+  $("stepName").textContent=s.name;
+  $("timer").textContent=fmt(left);
+  $("stepDrill").innerHTML=`<div class="drill">${s.drill}</div>`;
+  $("stepHow").innerHTML=s.how.map(h=>`<li>${h}</li>`).join("");
+  $("startBtn").textContent = running ? "❚❚ Pause" : (left===0 ? "✓ Done" : "▶ Start");
+  $("prevBtn").disabled = step===0;
+  $("nextBtn").textContent = step===ROUTINE.length-1 ? "Finish ✓" : "Next →";
+}
+function goStep(i){
+  clearInterval(tick); running=false;
+  if(i>=ROUTINE.length){ logDay("routine"); step=0; left=ROUTINE[0].secs; renderStep();
+    $("stepName").textContent="Routine complete — nice work!"; $("stepDrill").innerHTML=""; $("stepHow").innerHTML="<li>Come back tomorrow to keep your streak going.</li>"; $("timer").textContent="✓"; return; }
+  step=Math.max(0,i); left=ROUTINE[step].secs; renderStep();
+}
+$("startBtn").onclick=()=>{
+  if(running){ clearInterval(tick); running=false; renderStep(); return; }
+  if(left===0){ goStep(step+1); return; }
+  running=true; renderStep();
+  tick=setInterval(()=>{ left--; if(left<=0){ left=0; clearInterval(tick); running=false; } renderStep(); },1000);
+};
+$("nextBtn").onclick=()=>goStep(step+1);
+$("prevBtn").onclick=()=>goStep(step-1);
+$("hearStep").onclick=()=>speak(ROUTINE[step].say, 0.9);
+renderStep();
+
+/* ---------------- word comparison ---------------- */
+const NUMS={one:"1",two:"2",three:"3",four:"4",five:"5",six:"6",seven:"7",eight:"8",nine:"9",ten:"10",eleven:"11",twelve:"12",fifteenth:"15th",thirty:"30"};
+function norm(w){ w=w.toLowerCase().replace(/[’']/g,"").replace(/[^a-z0-9]/g,""); return NUMS[w]||w; }
+function words(s){ return s.split(/[\s—–-]+/).map(norm).filter(Boolean); }
+// LCS alignment: which target words were recognized in order
+function align(target, spoken){
+  const T=words(target), S=words(spoken), n=T.length, m=S.length;
+  const dp=Array.from({length:n+1},()=>new Uint16Array(m+1));
+  for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--) dp[i][j]= T[i]===S[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j],dp[i][j+1]);
+  const hit=new Array(n).fill(false); let i=0,j=0;
+  while(i<n&&j<m){ if(T[i]===S[j]){hit[i]=true;i++;j++;} else if(dp[i+1][j]>=dp[i][j+1]) i++; else j++; }
+  return {hit, total:n, matched:hit.filter(Boolean).length, spokenCount:m};
+}
+function markup(target, hit){
+  const toks=target.split(/(\s+)/); let k=0;
+  return toks.map(tok=>{ if(/^\s+$/.test(tok)) return tok;
+    const parts=tok.split(/([—–-])/);
+    return parts.map(p=>{ if(/^[—–-]$/.test(p)||!norm(p)) return p; const ok=hit[k++]; return `<span class="${ok?'w-ok':'w-miss'}">${p}</span>`; }).join("");
+  }).join("");
+}
+
+/* ---------------- dictation session (shared) ---------------- */
+let session=null; // {kind, target, finals:[], partial:"", t0, tFirst, tLast, btn, live}
+let rec=null;
+function showLive(){ if(!session) return; const s=(session.finals.join(" ")+" "+session.partial).trim(); $(session.live).textContent = s ? "“"+s+"”" : "Listening…"; }
+function begin(kind, target, btnId, liveId, resultId){
+  if(session){ stopSession(); return; }
+  if(tts) tts.cancel();
+  session={kind,target,finals:[],partial:"",t0:performance.now(),tFirst:0,tLast:0,btn:btnId,live:liveId,result:resultId,ending:false};
+  $(btnId).classList.add("rec"); $(btnId).textContent="■ Stop"; $(liveId).textContent="Listening… start speaking"; $(resultId).innerHTML="";
+  startRec();
+}
+function startRec(){
+  const r=new SR(); rec=r;
+  r.lang="en-US"; r.continuous=true; r.interimResults=true; r.maxAlternatives=1;
+  r.onresult=e=>{
+    if(!session||rec!==r) return; const now=performance.now(); if(!session.tFirst) session.tFirst=now; session.tLast=now;
+    let partial="";
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const res=e.results[i];
+      if(res.isFinal){ session.finals.push(res[0].transcript.trim()); } else partial+=res[0].transcript;
+    }
+    session.partial=partial.trim(); showLive();
+  };
+  r.onerror=e=>{
+    if(!session) return;
+    if(e.error==="not-allowed"||e.error==="service-not-allowed"){
+      $(session.live).textContent="Microphone or speech recognition was blocked. Allow it in your phone's settings for this browser, then try again.";
+      session.ending=true; resetBtn(); session=null; rec=null;
+    }
+  };
+  r.onend=()=>{
+    if(rec!==r) return;
+    // Phones stop listening after a pause; keep going until the person taps Stop.
+    if(session && !session.ending){ if(session.partial){ session.finals.push(session.partial); session.partial=""; } try{ startRec(); }catch(e){ finish(); } }
+    else { rec=null; finish(); }
+  };
+  try{ r.start(); }catch(e){ $(session.live).textContent="Couldn't start listening. Try again."; resetBtn(); session=null; rec=null; }
+}
+function resetBtn(){ if(!session) return; const b=$(session.btn); b.classList.remove("rec"); b.textContent = session.kind==="tw" ? "🎙 Say it" : "🎙 Start reading"; }
+function stopSession(){
+  if(!session||session.ending) return; session.ending=true;
+  $(session.live).textContent="Finishing…";
+  if(rec){ try{ rec.stop(); }catch(e){ rec=null; finish(); } setTimeout(()=>{ if(session){ rec=null; finish(); } },2500); }
+  else finish();
+}
+function finish(){
+  if(!session) return; const s=session; resetBtn(); session=null;
+  const spoken=(s.finals.join(" ")+" "+s.partial).trim();
+  $(s.live).textContent = spoken ? "Heard: “"+spoken+"”" : "";
+  if(!spoken){ $(s.result).innerHTML=`<div class="result muted">Didn't catch anything — check your mic and try again.</div>`; return; }
+  const a=align(s.target, spoken);
+  const pct=Math.round(100*a.matched/a.total);
+  const secs = s.tFirst && s.tLast>s.tFirst ? (s.tLast - s.tFirst)/1000 : (performance.now()-s.t0)/1000;
+  const wpm = Math.round(a.spokenCount/(secs/60));
+  const missed=a.hit.map((h,i)=>h?null:words(s.target)[i]).filter(Boolean);
+  let verdict = pct>=95?"Crystal clear.":pct>=85?"Very clear — polish the underlined words.":pct>=70?"Good — slow down and hit the underlined words harder.":"Try it slower, exaggerating every consonant.";
+  if(s.kind==="tw"){
+    logDay("drills", pct);
+    $(s.result).innerHTML=`<div class="result"><div class="row" style="gap:16px"><span class="score">${pct}%</span><span>${verdict}</span></div>
+      <div class="marked" style="margin-top:8px">${markup(s.target,a.hit)}</div></div>`;
+  } else {
+    logDay("reads", pct);
+    let pace = wpm<120?"On the slow side — fine for emphasis, but keep it moving.":wpm<=165?"Great pace for speaking to a room.":"A bit fast — add pauses at the periods.";
+    if(secs<4) pace="Read a longer stretch for an accurate pace.";
+    $(s.result).innerHTML=`<div class="stats">
+        <div class="stat"><b>${pct}%</b><span>words understood</span></div>
+        <div class="stat"><b>${isFinite(wpm)?wpm:"–"}</b><span>words per minute</span></div>
+        <div class="stat"><b>${missed.length}</b><span>words missed</span></div></div>
+      <div class="result"><p style="margin:0 0 6px"><b>${verdict}</b> ${pace}</p>
+      <div class="marked">${markup(s.target,a.hit)}</div>
+      ${a.matched<a.total*0.5?'<p class="muted small">If you stopped partway, only the part you read counts — the rest shows as missed.</p>':''}</div>`;
+  }
+}
+
+/* ---------------- twisters ---------------- */
+const TAGS=["All",...new Set(TWISTERS.map(x=>x.tag))];
+let twTag="All", twIdx=0, twRate=1;
+function twList(){ return twTag==="All"?TWISTERS:TWISTERS.filter(x=>x.tag===twTag); }
+function renderTw(){
+  const L=twList(); twIdx=(twIdx+L.length)%L.length; const x=L[twIdx];
+  $("twText").textContent=x.t; $("twFocus").textContent="Focus: "+x.f;
+  $("twCount").textContent=`${twIdx+1} / ${L.length}`;
+  $("twFilter").innerHTML=TAGS.map(t=>`<button class="chip ${t===twTag?'on':''}" data-t="${t}">${t}</button>`).join("");
+  $("twFilter").querySelectorAll("button").forEach(b=>b.onclick=()=>{twTag=b.dataset.t;twIdx=0;renderTw();});
+  $("twLive").textContent=""; $("twResult").innerHTML="";
+}
+const SPEEDS=[["Slow",0.75],["Normal",1],["Fast",1.35]];
+$("speedChips").insertAdjacentHTML("beforeend",SPEEDS.map(([n,r])=>`<button class="chip ${r===1?'on':''}" data-r="${r}">${n}</button>`).join(""));
+$("speedChips").querySelectorAll("button").forEach(b=>b.onclick=()=>{twRate=+b.dataset.r;$("speedChips").querySelectorAll("button").forEach(c=>c.classList.toggle("on",c===b));});
+$("twNext").onclick=()=>{twIdx++;renderTw();};
+$("twPrev").onclick=()=>{twIdx--;renderTw();};
+$("twHear").onclick=()=>speak(twList()[twIdx].t, twRate);
+$("twSay").onclick=()=>{ if(!dict) return; begin("tw", twList()[twIdx].t, "twSay","twLive","twResult"); };
+renderTw();
+
+/* ---------------- read aloud ---------------- */
+let passageText=PASSAGES[0].text;
+$("passageSel").innerHTML=PASSAGES.map((p,i)=>`<option value="${i}">${p.name}</option>`).join("");
+$("passageSel").onchange=e=>{ passageText=PASSAGES[+e.target.value].text; renderPassage(); };
+function renderPassage(){ $("passage").textContent=passageText; $("rdLive").textContent=""; $("rdResult").innerHTML=""; }
+$("customBtn").onclick=()=>$("customBox").classList.toggle("hidden");
+$("useCustom").onclick=()=>{ const t=$("customText").value.trim(); if(t){ passageText=t; $("customBox").classList.add("hidden"); renderPassage(); } };
+$("rdHear").onclick=()=>speak(passageText.slice(0,2000), 0.95);
+$("rdSay").onclick=()=>{ if(!dict) return; begin("rd", passageText, "rdSay","rdLive","rdResult"); };
+renderPassage();
+
+/* ---------------- progress ---------------- */
+function streak(){
+  let n=0; const d=new Date();
+  const key=x=>x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");
+  const active=k=>{const r=store.days[k]; return r&&(r.routine||r.drills||r.reads);};
+  if(!active(key(d))) d.setDate(d.getDate()-1);
+  while(active(key(d))){ n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+function renderProgress(){
+  const days=Object.values(store.days);
+  const routines=days.filter(d=>d.routine).length, drills=days.reduce((a,d)=>a+(d.drills||0),0), reads=days.reduce((a,d)=>a+(d.reads||0),0);
+  $("progStats").innerHTML=`
+    <div class="stat"><b>${streak()}</b><span>day streak</span></div>
+    <div class="stat"><b>${routines}</b><span>routines completed</span></div>
+    <div class="stat"><b>${drills}</b><span>twisters scored</span></div>
+    <div class="stat"><b>${store.best.drills?store.best.drills+"%":"–"}</b><span>best twister score</span></div>
+    <div class="stat"><b>${reads}</b><span>passages read</span></div>`;
+  const cells=[]; const d=new Date(); d.setDate(d.getDate()-27);
+  for(let i=0;i<28;i++){ const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); const r=store.days[k];
+    const lvl = r&&r.routine?"l2":(r&&(r.drills||r.reads))?"l1":""; cells.push(`<div class="${lvl}" title="${k}">${d.getDate()}</div>`); d.setDate(d.getDate()+1); }
+  $("cal").innerHTML=cells.join("");
+}
+$("resetBtn").onclick=()=>$("resetConfirm").classList.remove("hidden");
+$("resetYes").onclick=()=>{ store={days:{},best:{}}; save(); $("resetConfirm").classList.add("hidden"); renderProgress(); };
+
+/* ---------------- offline + install ---------------- */
+if("serviceWorker" in navigator && location.protocol==="https:"){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{})); }
+</script>
+</body>
+</html>
